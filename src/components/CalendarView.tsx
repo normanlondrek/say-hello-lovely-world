@@ -7,15 +7,15 @@ import { Calendar as CalendarIcon, ChevronLeft, ChevronRight } from "lucide-reac
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
-// Sample data for demonstration
+// Sample data for demonstration - properly typed
 const sampleTransactions = [
-  { id: 1, type: "income", amount: 2500, category: "Salary", date: new Date(2023, 3, 15) },
-  { id: 2, type: "expense", amount: 450, category: "Housing", date: new Date(2023, 3, 1) },
-  { id: 3, type: "expense", amount: 85, category: "Groceries", date: new Date(2023, 3, 8) },
-  { id: 4, type: "income", amount: 150, category: "Freelance", date: new Date(2023, 3, 20) },
-  { id: 5, type: "expense", amount: 35, category: "Utilities", date: new Date(2023, 3, 15) },
-  { id: 6, type: "expense", amount: 25, category: "Transportation", date: new Date(2023, 3, 10) },
-  { id: 7, type: "income", amount: 75, category: "Dividend", date: new Date(2023, 3, 25) },
+  { id: 1, type: "income" as const, amount: 2500, category: "Salary", date: new Date(2023, 3, 15) },
+  { id: 2, type: "expense" as const, amount: 450, category: "Housing", date: new Date(2023, 3, 1) },
+  { id: 3, type: "expense" as const, amount: 85, category: "Groceries", date: new Date(2023, 3, 8) },
+  { id: 4, type: "income" as const, amount: 150, category: "Freelance", date: new Date(2023, 3, 20) },
+  { id: 5, type: "expense" as const, amount: 35, category: "Utilities", date: new Date(2023, 3, 15) },
+  { id: 6, type: "expense" as const, amount: 25, category: "Transportation", date: new Date(2023, 3, 10) },
+  { id: 7, type: "income" as const, amount: 75, category: "Dividend", date: new Date(2023, 3, 25) },
 ];
 
 type Transaction = {
