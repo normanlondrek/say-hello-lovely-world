@@ -42,22 +42,29 @@ const Auth = () => {
 
       // Insert user into users table after successful signup
       if (data.user) {
-        const { error: userInsertError } = await supabase
-          .from("users")
-          .insert([
-            {
-              id: data.user.id,
-              // You can add more fields if you add them in the database
-            },
-          ]);
-
-        if (userInsertError) {
-          toast.error(
-            "Account created, but failed to add user to users table: " +
-              userInsertError.message
-          );
+        // The users table in the database uses a numeric id
+        const numericId = parseInt(data.user.id, 10);
+        
+        if (isNaN(numericId)) {
+          console.error("Failed to convert user ID to a numeric value");
+          toast.error("Account created, but failed to add user to database. Please contact support.");
         } else {
-          toast.success("Account created successfully! You can now sign in.");
+          const { error: userInsertError } = await supabase
+            .from("users")
+            .insert({
+              id: numericId,
+              // You can add more fields if you add them in the database
+            });
+
+          if (userInsertError) {
+            console.error("Error inserting user:", userInsertError);
+            toast.error(
+              "Account created, but failed to add user to users table: " +
+                userInsertError.message
+            );
+          } else {
+            toast.success("Account created successfully! You can now sign in.");
+          }
         }
       } else {
         toast.success("Account created. You can now sign in.");
