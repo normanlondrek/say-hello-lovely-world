@@ -3,16 +3,18 @@ import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { PieChart, WalletIcon, CircleDollarSign, ArrowUp, ArrowDown } from "lucide-react";
+import { PieChart, WalletIcon, CircleDollarSign, ArrowUp, ArrowDown, LogOut } from "lucide-react";
 import Dashboard from "@/components/Dashboard";
 import Income from "@/components/Income";
 import Expenses from "@/components/Expenses";
 import Analytics from "@/components/Analytics";
 import CalendarView from "@/components/CalendarView";
 import ThemeToggle from "@/components/ThemeToggle";
+import { useUser } from "@/context/UserContext";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
+  const { user, signOut } = useUser();
 
   return (
     <div className="min-h-screen bg-background">
@@ -22,7 +24,18 @@ const Index = () => {
             <WalletIcon className="h-6 w-6" />
             <h1 className="text-xl font-semibold">Wallet Manager</h1>
           </div>
-          <ThemeToggle />
+          <div className="flex items-center gap-4">
+            {user && (
+              <div className="text-sm text-muted-foreground">
+                {user.email}
+              </div>
+            )}
+            <ThemeToggle />
+            <Button variant="outline" size="sm" onClick={signOut}>
+              <LogOut className="h-4 w-4 mr-2" />
+              Sign Out
+            </Button>
+          </div>
         </div>
       </header>
       
