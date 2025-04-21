@@ -24,24 +24,44 @@ const Auth = () => {
         navigate("/");
       }
     };
-    
+
     checkUser();
   }, [navigate]);
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    
+
     try {
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
       });
-      
+
       if (error) throw error;
-      
-      toast.success("Account created successfully! You can now sign in.");
-      
+
+      // Insert user into users table after successful signup
+      if (data.user) {
+        const { error: userInsertError } = await supabase
+          .from("users")
+          .insert([
+            {
+              id: data.user.id,
+              // You can add more fields if you add them in the database
+            },
+          ]);
+
+        if (userInsertError) {
+          toast.error(
+            "Account created, but failed to add user to users table: " +
+              userInsertError.message
+          );
+        } else {
+          toast.success("Account created successfully! You can now sign in.");
+        }
+      } else {
+        toast.success("Account created. You can now sign in.");
+      }
     } catch (error: any) {
       toast.error(error.message || "Error creating account");
     } finally {
@@ -52,24 +72,23 @@ const Auth = () => {
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    
+
     try {
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
-      
+
       if (error) throw error;
-      
+
       // Create test user named "obaida" with password "2002"
       if (email === "obaida@wallet.com" && password === "2002") {
         toast.success("Welcome back, Obaida!");
       } else {
         toast.success("Signed in successfully!");
       }
-      
+
       navigate("/");
-      
     } catch (error: any) {
       toast.error(error.message || "Invalid email or password");
     } finally {
@@ -92,67 +111,67 @@ const Auth = () => {
               <TabsTrigger value="signin">Sign In</TabsTrigger>
               <TabsTrigger value="signup">Sign Up</TabsTrigger>
             </TabsList>
-            
+
             <TabsContent value="signin">
               <form onSubmit={handleSignIn} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
-                  <Input 
-                    id="email" 
-                    type="email" 
-                    placeholder="your@email.com" 
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="your@email.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
                   />
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label htmlFor="password">Password</Label>
-                  <Input 
-                    id="password" 
-                    type="password" 
+                  <Input
+                    id="password"
+                    type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
                   />
                 </div>
-                
+
                 <Button type="submit" className="w-full" disabled={loading}>
                   {loading ? "Signing In..." : "Sign In"}
                 </Button>
-                
+
                 <div className="text-center text-sm text-muted-foreground">
                   <p>Test user: obaida@wallet.com / 2002</p>
                 </div>
               </form>
             </TabsContent>
-            
+
             <TabsContent value="signup">
               <form onSubmit={handleSignUp} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="signup-email">Email</Label>
-                  <Input 
-                    id="signup-email" 
-                    type="email" 
-                    placeholder="your@email.com" 
+                  <Input
+                    id="signup-email"
+                    type="email"
+                    placeholder="your@email.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
                   />
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label htmlFor="signup-password">Password</Label>
-                  <Input 
-                    id="signup-password" 
-                    type="password" 
+                  <Input
+                    id="signup-password"
+                    type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
                   />
                 </div>
-                
+
                 <Button type="submit" className="w-full" disabled={loading}>
                   {loading ? "Creating Account..." : "Create Account"}
                 </Button>
