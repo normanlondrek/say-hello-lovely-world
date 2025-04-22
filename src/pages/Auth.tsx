@@ -54,6 +54,7 @@ const Auth = () => {
             });
 
           if (userInsertError) {
+            console.error("User insert error:", userInsertError);
             toast.error(
               "Account created, but failed to add user to users table: " +
                 userInsertError.message
@@ -62,12 +63,14 @@ const Auth = () => {
             toast.success("Account created successfully! You can now sign in.");
           }
         } catch (insertError: any) {
+          console.error("Insert error:", insertError);
           toast.error("Error adding user to database: " + insertError.message);
         }
       } else {
         toast.success("Account created. You can now sign in.");
       }
     } catch (error: any) {
+      console.error("Sign up error:", error);
       toast.error(error.message || "Error creating account");
     } finally {
       setLoading(false);
@@ -79,10 +82,15 @@ const Auth = () => {
     setLoading(true);
 
     try {
+      console.log("Attempting to sign in with:", email, password);
+      
       // Use our helper function that handles the test user
-      const { error } = await signInWithTestCredentials(email, password);
+      const { data, error } = await signInWithTestCredentials(email, password);
 
-      if (error) throw error;
+      if (error) {
+        console.error("Sign in error:", error);
+        throw error;
+      }
 
       if (email === "obaida@wallet.com" && password === "2002") {
         toast.success("Welcome back, Obaida!");
@@ -92,6 +100,7 @@ const Auth = () => {
 
       navigate("/");
     } catch (error: any) {
+      console.error("Detailed sign in error:", error);
       toast.error(error.message || "Invalid email or password");
     } finally {
       setLoading(false);
