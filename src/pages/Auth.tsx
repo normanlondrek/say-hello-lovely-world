@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -7,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, signInWithTestCredentials } from "@/integrations/supabase/client";
 import { WalletIcon } from "lucide-react";
 
 const Auth = () => {
@@ -74,14 +73,11 @@ const Auth = () => {
     setLoading(true);
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+      // Use our helper function that handles the test user
+      const { error } = await signInWithTestCredentials(email, password);
 
       if (error) throw error;
 
-      // Create test user named "obaida" with password "2002"
       if (email === "obaida@wallet.com" && password === "2002") {
         toast.success("Welcome back, Obaida!");
       } else {

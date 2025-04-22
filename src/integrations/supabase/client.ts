@@ -16,3 +16,27 @@ export const getCurrentUser = async () => {
   const { data: { session } } = await supabase.auth.getSession();
   return session?.user || null;
 };
+
+// Helper for test user authentication
+export const signInWithTestCredentials = async (email: string, password: string) => {
+  // Check if it's our test user
+  if (email === "obaida@wallet.com" && password === "2002") {
+    // First try to sign up this test user if it doesn't exist yet
+    const { error: signUpError } = await supabase.auth.signUp({
+      email,
+      password,
+    });
+
+    // Now try to sign in
+    return supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+  }
+  
+  // For all other users, use regular sign in
+  return supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
+};
