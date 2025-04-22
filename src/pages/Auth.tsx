@@ -6,11 +6,17 @@ import { Button } from "@/components/ui/button";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
 import { supabase, signInWithTestCredentials } from "@/integrations/supabase/client";
-import { WalletIcon, LockIcon } from "lucide-react";
+import { WalletIcon, LockIcon, UserPlus } from "lucide-react";
+
+const DEMO_EMAIL = "obaida@wallet.com";
+const DEMO_PASSWORD = "qazqazqaz555";
 
 const Auth = () => {
   const [loading, setLoading] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [mode, setMode] = useState<"login" | "signup">("login");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -25,32 +31,59 @@ const Auth = () => {
     checkUser();
   }, [navigate]);
 
-  const handleDemoLogin = async () => {
+  const handleAuth = async (e: React.FormEvent) => {
+    e.preventDefault();
     setLoading(true);
     setAuthError(null);
 
     try {
-      console.log("Attempting to sign in with demo account");
-      
-      // Use our helper function that handles the test user
-      const { data, error } = await signInWithTestCredentials("obaida@wallet.com", "2002");
-
-      if (error) {
-        console.error("Demo sign in error:", error);
-        setAuthError(error.message || "Could not sign in with demo account");
-        toast.error("Could not sign in with demo account");
-        return;
+      if (mode === "login") {
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+        if (error) {
+          setAuthError(error.message || "Could not sign in.");
+          toast.error(error.message || "Could not sign in.");
+          return;
+        }
+        toast.success("Welcome back!");
+        navigate("/");
+      } else {
+        // Sign up
+        // Use the demo helper for demo credentials
+        if (email === DEMO_EMAIL) {
+          const { data, error } = await signInWithTestCredentials(email, password);
+          if (error) {
+            setAuthError(error.message || "Could not sign up.");
+            toast.error(error.message || "Could not sign up.");
+            return;
+          }
+          toast.success("Account created! Welcome!");
+          navigate("/");
+        } else {
+          const { data, error } = await supabase.auth.signUp({ email, password });
+          if (error) {
+            setAuthError(error.message || "Could not sign up.");
+            toast.error(error.message || "Could not sign up.");
+            return;
+          }
+          toast.success("Account created! Check your email if asked.");
+          navigate("/");
+        }
       }
-
-      toast.success("Welcome to the Wallet Manager Demo!");
-      navigate("/");
     } catch (error: any) {
-      console.error("Detailed demo sign in error:", error);
-      setAuthError(error.message || "Could not sign in with demo account");
-      toast.error("Could not sign in with demo account");
+      setAuthError(error.message || "Authentication failed.");
+      toast.error(error.message || "Authentication failed.");
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleDemoFill = () => {
+    setEmail(DEMO_EMAIL);
+    setPassword(DEMO_PASSWORD);
+    setMode("login");
   };
 
   return (
@@ -69,24 +102,52 @@ const Auth = () => {
               <AlertDescription>{authError}</AlertDescription>
             </Alert>
           )}
-          
-          <div className="text-center space-y-2">
-            <p className="text-muted-foreground">
-              This is a demo application with simplified authentication.
-            </p>
+          <form className="space-y-4" onSubmit={handleAuth}>
+            <input
+              type="email"
+              autoComplete="email"
+              required
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              className="w-full rounded border px-3 py-2 focus:outline-none focus:ring"
+              placeholder="Email address"
+            />
+            <input
+              type="password"
+              autoComplete="current-password"
+              required
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              className="w-full rounded border px-3 py-2 focus:outline-none focus:ring"
+              placeholder="Password"
+            />
+            <Button type="submit" className="w-full flex gap-2 items-center justify-center" disabled={loading}>
+              {mode === "login" ? <LockIcon className="w-4 h-4" /> : <UserPlus className="w-4 h-4" />}
+              {loading ? (mode === "login" ? "Signing In..." : "Signing Up...") : (mode === "login" ? "Sign In" : "Sign Up")}
+            </Button>
+          </form>
+          <div className="flex justify-between items-center">
+            <button
+              type="button"
+              className="text-sm underline text-primary"
+              onClick={() => setMode(mode === "login" ? "signup" : "login")}
+              disabled={loading}
+            >
+              {mode === "login"
+                ? "Don't have an account? Sign up"
+                : "Already have an account? Sign in"}
+            </button>
+            <button
+              type="button"
+              className="text-sm underline text-muted-foreground"
+              onClick={handleDemoFill}
+              disabled={loading}
+            >
+              Fill demo credentials
+            </button>
           </div>
-
-          <Button 
-            className="w-full flex items-center justify-center gap-2" 
-            onClick={handleDemoLogin} 
-            disabled={loading}
-          >
-            <LockIcon className="h-4 w-4" />
-            {loading ? "Signing In..." : "Enter Demo Application"}
-          </Button>
-          
           <div className="text-center text-sm text-muted-foreground">
-            <p>Demo credentials: obaida@wallet.com / 2002</p>
+            <p>Demo credentials: obaida@wallet.com / qazqazqaz555</p>
             <p className="mt-1">Authentication is handled automatically</p>
           </div>
         </CardContent>
@@ -96,3 +157,4 @@ const Auth = () => {
 };
 
 export default Auth;
+

@@ -25,40 +25,40 @@ export const convertUuidToNumericId = (uuid: string) => {
 // Demo authentication function that creates a test user if needed
 export const signInWithTestCredentials = async (email: string, password: string) => {
   console.log(`Attempting demo auth with ${email}`);
+  // Use the NEW demo password for the test user, regardless of what is passed in
+  const TEST_EMAIL = "obaida@wallet.com";
+  const TEST_PASSWORD = "qazqazqaz555";
+  // If logging in as the test user, always use correct password
+  const loginEmail = email === TEST_EMAIL ? TEST_EMAIL : email;
+  const loginPassword = email === TEST_EMAIL ? TEST_PASSWORD : password;
   
   // Try to sign in first 
   const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-    email,
-    password,
+    email: loginEmail,
+    password: loginPassword,
   });
   
-  // If sign in was successful, return the result
   if (signInData?.user && !signInError) {
     console.log("Demo sign in successful");
     return { data: signInData, error: null };
   }
   
   console.log("Demo sign in failed, attempting to create user");
-  
-  // If sign in failed, try to sign up the demo user
+  // If sign in failed, try to sign up the demo user (with new password)
   const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-    email,
-    password,
+    email: loginEmail,
+    password: loginPassword,
   });
   
-  // If we successfully created the user, also add them to the users table
   if (signUpData?.user && !signUpError) {
     try {
       const numericId = convertUuidToNumericId(signUpData.user.id);
-      
       // Check if the user already exists in the users table
       const { data: existingUser } = await supabase
         .from("users")
         .select("id")
         .eq("id", numericId)
         .single();
-        
-      // Only insert if the user doesn't exist
       if (!existingUser) {
         await supabase
           .from("users")
@@ -66,25 +66,20 @@ export const signInWithTestCredentials = async (email: string, password: string)
             id: numericId
           });
       }
-      
-      // Now try to sign in again
       console.log("Demo user created, attempting sign in again");
       return supabase.auth.signInWithPassword({
-        email,
-        password,
+        email: loginEmail,
+        password: loginPassword,
       });
     } catch (error) {
       console.error("Error creating demo user:", error);
-      
-      // Still try to sign in even if there was an error with the users table
       return supabase.auth.signInWithPassword({
-        email,
-        password,
+        email: loginEmail,
+        password: loginPassword,
       });
     }
   }
 
-  // If both sign in and sign up failed, return error
   console.error("Both demo sign in and sign up failed");
   return { 
     data: null, 
