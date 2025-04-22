@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -41,22 +42,27 @@ const Auth = () => {
 
       // Insert user into users table after successful signup
       if (data.user) {
-        const { error: userInsertError } = await supabase
-          .from("users")
-          .insert([
-            {
-              id: data.user.id,
-              // You can add more fields if you add them in the database
-            },
-          ]);
+        // Convert UUID string to a number for the database
+        // The users table expects id to be a number, not a string
+        try {
+          const numericId = parseInt(data.user.id.replace(/-/g, '').substring(0, 10), 16) % 1000000;
+          
+          const { error: userInsertError } = await supabase
+            .from("users")
+            .insert({
+              id: numericId
+            });
 
-        if (userInsertError) {
-          toast.error(
-            "Account created, but failed to add user to users table: " +
-              userInsertError.message
-          );
-        } else {
-          toast.success("Account created successfully! You can now sign in.");
+          if (userInsertError) {
+            toast.error(
+              "Account created, but failed to add user to users table: " +
+                userInsertError.message
+            );
+          } else {
+            toast.success("Account created successfully! You can now sign in.");
+          }
+        } catch (insertError: any) {
+          toast.error("Error adding user to database: " + insertError.message);
         }
       } else {
         toast.success("Account created. You can now sign in.");
